@@ -25,7 +25,7 @@ namespace Worker
                 var keepAliveCommand = pgsql.CreateCommand();
                 keepAliveCommand.CommandText = "SELECT 1";
 
-                var definition = new { vote = "", voter_id = "" };
+                var definition = new { exp_vote = "", want_vote = "", voter_id = "" };
                 while (true)
                 {
                     // Reconnect redis if down
@@ -37,7 +37,7 @@ namespace Worker
                     if (json != null)
                     {
                         var vote = JsonConvert.DeserializeAnonymousType(json, definition);
-                        Console.WriteLine($"Processing vote for '{vote.vote}' by '{vote.voter_id}'");
+                        Console.WriteLine($"Processing vote for '{vote.exp_vote}'/'{vote.want_vote}' by '{vote.voter_id}'");
                         // Reconnect DB if down
                         if (!pgsql.State.Equals(System.Data.ConnectionState.Open))
                         {
@@ -46,7 +46,7 @@ namespace Worker
                         }
                         else
                         { // Normal +1 vote requested
-                            UpdateVote(pgsql, vote.voter_id, vote.vote);
+                            UpdateVote(pgsql, vote.voter_id, vote.exp_vote, vote.want_vote);
                         }
                     }
                     else
@@ -91,7 +91,8 @@ namespace Worker
             var command = connection.CreateCommand();
             command.CommandText = @"CREATE TABLE IF NOT EXISTS votes (
                                         id VARCHAR(255) NOT NULL UNIQUE,
-                                        vote VARCHAR(255) NOT NULL
+                                        exp_vote VARCHAR(255) NOT NULL,
+                                        want_vote VARCHAR(255) NOT NULL
                                     )";
             command.ExecuteNonQuery();
 
@@ -126,19 +127,20 @@ namespace Worker
                 .First(a => a.AddressFamily == AddressFamily.InterNetwork)
                 .ToString();
 
-        private static void UpdateVote(NpgsqlConnection connection, string voterId, string vote)
+        private static void UpdateVote(NpgsqlConnection connection, string voterId, string exp_vote, string want_vote)
         {
             var command = connection.CreateCommand();
             try
             {
-                command.CommandText = "INSERT INTO votes (id, vote) VALUES (@id, @vote)";
+                command.CommandText = "INSERT INTO votes (id, exp_vote, want_vote) VALUES (@id, @exp_vote, @want_vote)";
                 command.Parameters.AddWithValue("@id", voterId);
-                command.Parameters.AddWithValue("@vote", vote);
+                command.Parameters.AddWithValue("@exp_vote", exp_vote);
+                command.Parameters.AddWithValue("@want_vote", want_vote);
                 command.ExecuteNonQuery();
             }
             catch (DbException)
             {
-                command.CommandText = "UPDATE votes SET vote = @vote WHERE id = @id";
+                command.CommandText = "UPDATE votes SET exp_vote = @exp_vote, want_vote = @want_vote WHERE id = @id";
                 command.ExecuteNonQuery();
             }
             finally
