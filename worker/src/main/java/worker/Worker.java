@@ -17,10 +17,12 @@ class Worker {
         String voteJSON = redis.blpop(0, "votes").get(1);
         JSONObject voteData = new JSONObject(voteJSON);
         String voterID = voteData.getString("voter_id");
-        String vote = voteData.getString("vote");
 
-        System.err.printf("Processing vote for '%s' by '%s'\n", vote, voterID);
-        updateVote(dbConn, voterID, vote);
+        String want_vote = voteData.getString("want_vote");
+        String exp_vote = voteData.getString("exp_vote");
+
+        System.err.printf("Processing exp_/want_vote for '%s'/'%s' by '%s'\n", exp_vote, want_vote, voterID);
+        updateVote(dbConn, voterID, exp_vote, want_vote);
       }
     } catch (SQLException e) {
       e.printStackTrace();
@@ -28,19 +30,21 @@ class Worker {
     }
   }
 
-  static void updateVote(Connection dbConn, String voterID, String vote) throws SQLException {
+  static void updateVote(Connection dbConn, String voterID, String exp_vote, String want_vote) throws SQLException {
     PreparedStatement insert = dbConn.prepareStatement(
-      "INSERT INTO votes (id, vote) VALUES (?, ?)");
+      "INSERT INTO votes (id, exp_vote, want_vote) VALUES (?, ?, ?)");
     insert.setString(1, voterID);
-    insert.setString(2, vote);
+    insert.setString(2, exp_vote);
+    insert.setString(3, want_vote);
 
     try {
       insert.executeUpdate();
     } catch (SQLException e) {
       PreparedStatement update = dbConn.prepareStatement(
-        "UPDATE votes SET vote = ? WHERE id = ?");
-      update.setString(1, vote);
-      update.setString(2, voterID);
+        "UPDATE votes SET exp_vote = ?,want_vote = ? WHERE id = ?");
+      update.setString(1, exp_vote);
+      update.setString(2, want_vote);
+      update.setString(3, voterID);
       update.executeUpdate();
     }
   }
@@ -80,7 +84,7 @@ class Worker {
       }
 
       PreparedStatement st = conn.prepareStatement(
-        "CREATE TABLE IF NOT EXISTS votes (id VARCHAR(255) NOT NULL UNIQUE, vote VARCHAR(255) NOT NULL)");
+        "CREATE TABLE IF NOT EXISTS votes (id VARCHAR(255) NOT NULL UNIQUE, exp_vote VARCHAR(255), want_vote VARCHAR(255) NOT NULL)");
       st.executeUpdate();
 
     } catch (ClassNotFoundException e) {
