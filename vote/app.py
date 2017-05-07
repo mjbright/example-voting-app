@@ -5,8 +5,14 @@ import socket
 import random
 import json
 
-option_a = os.getenv('OPTION_A', "Cats")
-option_b = os.getenv('OPTION_B', "Dogs")
+exp_docker_low = os.getenv('EXP_OPTION_A', "exp_docker_low")
+exp_docker_medium = os.getenv('EXP_OPTION_B', "exp_docker_medium")
+exp_docker_high = os.getenv('EXP_OPTION_C', "exp_docker_high")
+
+want_docker_low = os.getenv('WANT_OPTION_A', "want_docker_low")
+want_docker_medium = os.getenv('WANT_OPTION_B', "want_docker_medium")
+want_docker_high = os.getenv('WANT_OPTION_C', "want_docker_high")
+
 hostname = socket.gethostname()
 
 app = Flask(__name__)
@@ -22,20 +28,31 @@ def hello():
     if not voter_id:
         voter_id = hex(random.getrandbits(64))[2:-1]
 
-    vote = None
+    exp_vote = None
+    want_vote = None
 
     if request.method == 'POST':
         redis = get_redis()
-        vote = request.form['vote']
-        data = json.dumps({'voter_id': voter_id, 'vote': vote})
+        exp_vote = request.form['exp_vote']
+        want_vote = request.form['want_vote']
+        data = json.dumps({'voter_id': voter_id, 'exp_vote': exp_vote, 'want_vote': want_vote})
         redis.rpush('votes', data)
 
     resp = make_response(render_template(
         'index.html',
-        option_a=option_a,
-        option_b=option_b,
+
+        exp_docker_low=exp_docker_low,
+        exp_docker_medium=exp_docker_medium,
+        exp_docker_high=exp_docker_high,
+
+        want_docker_low=want_docker_low,
+        want_docker_medium=want_docker_medium,
+        want_docker_high=want_docker_high,
+
         hostname=hostname,
-        vote=vote,
+
+        exp_vote=exp_vote,
+        want_vote=want_vote,
     ))
     resp.set_cookie('voter_id', voter_id)
     return resp
