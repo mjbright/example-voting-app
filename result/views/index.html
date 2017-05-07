@@ -2,7 +2,7 @@
 <html ng-app="catsvsdogs">
   <head>
     <meta charset="utf-8">
-    <title>Cats vs Dogs -- Result</title>
+    <title>Lab Choices -- Result</title>
     <base href="/index.html">
     <meta name = "viewport" content = "width=device-width, initial-scale = 1.0">
     <meta name="keywords" content="docker-compose, docker, stack">
@@ -18,15 +18,36 @@
     </div>
     <div id="content-container">
       <div id="content-container-center">
-        <div id="choice">
-          <div class="choice cats">
-            <div class="label">Cats</div>
-            <div class="stat">{{aPercent | number:1}}%</div>
+        <div id="exp_choice">
+          <div class="choice docker low">
+            <div class="label">Docker Experience Low</div>
+            <div class="stat">{{delPercent | number:1}}%</div>
           </div>
           <div class="divider"></div>
-          <div class="choice dogs">
-            <div class="label">Dogs</div>
-            <div class="stat">{{bPercent | number:1}}%</div>
+          <div class="choice docker medium">
+            <div class="label">Docker Experience Medium</div>
+            <div class="stat">{{demPercent | number:1}}%</div>
+          </div>
+          <div class="divider"></div>
+          <div class="choice docker high">
+            <div class="label">Docker Experience High</div>
+            <div class="stat">{{dehPercent | number:1}}%</div>
+          </div>
+        </div>
+        <div id="want_choice">
+          <div class="choice docker low">
+            <div class="label">Docker Want Low</div>
+            <div class="stat">{{dwlPercent | number:1}}%</div>
+          </div>
+          <div class="divider"></div>
+          <div class="choice docker medium">
+            <div class="label">Docker Want Medium</div>
+            <div class="stat">{{dwmPercent | number:1}}%</div>
+          </div>
+          <div class="divider"></div>
+          <div class="choice docker high">
+            <div class="label">Docker Want High</div>
+            <div class="stat">{{dwhPercent | number:1}}%</div>
           </div>
         </div>
       </div>

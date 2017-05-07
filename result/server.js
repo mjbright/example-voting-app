@@ -41,7 +41,18 @@ async.retry(
 );
 
 function getVotes(client) {
-  client.query('SELECT vote, COUNT(id) AS count FROM votes GROUP BY vote', [], function(err, result) {
+  client.query('SELECT exp_vote COUNT(id) AS count FROM votes GROUP BY exp_vote', [], function(err, result) {
+    if (err) {
+      console.error("Error performing query: " + err);
+    } else {
+      var votes = collectVotesFromResult(result);
+      io.sockets.emit("scores", JSON.stringify(votes));
+    }
+
+    setTimeout(function() {getVotes(client) }, 1000);
+  });
+
+  client.query('SELECT want_vote, COUNT(id) AS count FROM votes GROUP BY want_vote', [], function(err, result) {
     if (err) {
       console.error("Error performing query: " + err);
     } else {
